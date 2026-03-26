@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>BrainHack 2025</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <script src="scripts/rounded-corner-plane.js"></script>
+    <script src="scripts/scanned-target.js"></script>
+    <script src="scripts/show-avatar.js"></script>
+    <script src="scripts/show-media.js"></script>
+    <script src="scripts/show-cta.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+      }
+      .base-container {
+        overflow: hidden;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+      #scanning-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: transparent;
+        z-index: 2;
+      }
+      @media (min-aspect-ratio: 1/1) {
+        #scanning-overlay .inner {
+          width: 50vh;
+          height: 50vh;
+        }
+      }
+      @media (max-aspect-ratio: 1/1) {
+        #scanning-overlay .inner {
+          width: 80vw;
+          height: 80vw;
+        }
+      }
+
+      #scanning-overlay .inner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+
+        background: linear-gradient(to right, white 10px, transparent 10px) 0 0,
+          linear-gradient(to right, white 10px, transparent 10px) 0 100%,
+          linear-gradient(to left, white 10px, transparent 10px) 100% 0,
+          linear-gradient(to left, white 10px, transparent 10px) 100% 100%,
+          linear-gradient(to bottom, white 10px, transparent 10px) 0 0,
+          linear-gradient(to bottom, white 10px, transparent 10px) 100% 0,
+          linear-gradient(to top, white 10px, transparent 10px) 0 100%,
+          linear-gradient(to top, white 10px, transparent 10px) 100% 100%;
+        background-repeat: no-repeat;
+        background-size: 40px 40px;
+      }
+
+      #scanning-overlay.hidden {
+        display: none;
+      }
+
+      #scanning-overlay img {
+        opacity: 0.6;
+        width: 90%;
+        align-self: center;
+      }
+
+      #scanning-overlay .inner .scanline {
+        position: absolute;
+        width: 100%;
+        height: 10px;
+        background: white;
+        animation: move 2s linear infinite;
+      }
+      @keyframes move {
+        0%,
+        100% {
+          top: 0%;
+        }
+        50% {
+          top: calc(100% - 10px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="base-container">
+      <div id="scanning-overlay" class="hidden">
+        <div class="inner">
+          <img
+            src="assets/brainhack-target.png"
+            alt="To scan"
+          />
+          <div class="scanline"></div>
+        </div>
+      </div>
+
+      <a-scene
+        mindar-image="imageTargetSrc: assets/brainhack-target.mind; 
+               showStats: false; 
+               uiScanning: #scanning-overlay; 
+               filterMinCF: 3; 
+               filterBeta: 15000; 
+               warmupTolerance: 0.2; 
+               missTolerance: 2;"
+        embedded
+        color-space="sRGB"
+        renderer="colorManagement: true, physicallyCorrectLights"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+      >
+        <a-assets>
+          <img
+            id="card"
+            src="assets/brainhack-target.png"
+            alt="Card"
+          />
+
+          <img
+            id="brainhack-banner"
+            src="assets/brainhack-banner.png"
+            alt="BrainHack Banner"
+          />
+
+          <img
+            id="icon-play"
+            src="assets/play-button-coloured.png"
+            alt="Play Button"
+          />
+
+          <img
+            id="icon-left"
+            src="assets/left-arrow-coloured.png"
+            alt="Left Button"
+          />
+
+          <img
+            id="icon-right"
+            src="assets/right-arrow-coloured.png"
+            alt="Right Button"
+          />
+
+          <img
+            id="brainhack-video-preview"
+            src="assets/brainhack-video-preview.png"
+            alt="Brain Hack Preview"
+          />
+
+          <video
+            id="brainhack-video-mp4"
+            autoplay="false"
+            loop="false"
+            src="assets/brainhack-video-compressed.mp4"
+          ></video>
+
+          <video
+            id="brainhack-video-webm"
+            autoplay="false"
+            loop="false"
+            src="assets/brainhack-video-compressed.mp4"
+          ></video>
+
+          <img
+            id="sample-1"
+            src="assets/sample-1.png"
+            alt="Sample Info 1"
+          />
+
+          <img
+            id="sample-2"
+            src="assets/sample-2.png"
+            alt="Sample Info 2"
+          />
+
+          <img
+            id="cta"
+            src="assets/CTA.png"
+            alt="CTA"
+          />
+
+          <a-asset-item
+            id="avatarModel"
+            src="assets/damaged-helmet.glb"
+          ></a-asset-item>
+        </a-assets>
+
+        <a-camera
+          position="0 0 0"
+          look-controls="enabled: false"
+          cursor="fuse: false; rayOrigin: mouse;"
+          raycaster="far: 10000; objects: .clickable"
+        >
+        </a-camera>
+
+        <a-entity
+          id="scanned-target"
+          scanned-target
+          mindar-image-target="targetIndex: 0"
+        >
+          <a-plane
+            src="#card"
+            position="0 0 0"
+            height="0.5625"
+            width="1"
+            rotation="0 0 0"
+          ></a-plane>
+
+          <a-entity visible="false" id="media-panel" position="0 0 -0.01">
+            <a-entity position="0 0.4 0">
+              <a-image src="#brainhack-banner" height="0.15625" width="1">
+              </a-image>
+            </a-entity>
+
+            <a-entity id="media-item0">
+              <a-video
+                id="brainhack-video-link"
+                webkit-playsinline
+                playsinline
+                width="1"
+                height="0.5625"
+                position="0 0 0"
+              ></a-video>
+              <a-image
+                id="brainhack-video-preview-button"
+                class="clickable"
+                src="#brainhack-video-preview"
+                alpha-test="0.5"
+                position="0 0 0"
+                height="0.5625"
+                width="1"
+              >
+              </a-image>
+            </a-entity>
+
+            <a-entity id="media-item1" visible="false">
+              <a-image
+                src="#sample-1"
+                alpha-test="0.5"
+                position="0 0 0"
+                height="0.5625"
+                width="1"
+              >
+              </a-image>
+            </a-entity>
+
+            <a-entity id="media-item2" visible="false">
+              <a-image
+                src="#sample-2"
+                alpha-test="0.5"
+                position="0 0 0"
+                height="0.5625"
+                width="1"
+              >
+              </a-image>
+            </a-entity>
+
+            <a-image
+              visible="false"
+              id="media-play-button"
+              class="clickable"
+              src="#icon-play"
+              position="0 0 0.05"
+              height="0.20"
+              width="0.20"
+            ></a-image>
+
+            <a-image
+              visible="false"
+              id="media-left-button"
+              class="clickable"
+              src="#icon-left"
+              position="-0.7 0 0"
+              height="0.15"
+              width="0.15"
+            ></a-image>
+
+            <a-image
+              visible="false"
+              id="media-right-button"
+              class="clickable"
+              src="#icon-right"
+              position="0.7 0 0"
+              height="0.15"
+              width="0.15"
+            ></a-image>
+          </a-entity>
+
+          <a-gltf-model
+            id="avatar"
+            rotation="0 0 0"
+            position="0 0 0"
+            scale="0.25 0.25 0.25"
+            src="#avatarModel"
+          ></a-gltf-model>
+
+          <!-- <a-entity
+            visible="false"
+            id="cta-button"
+            class="clickable"
+            rounded-plane="width: 1; height: 0.2; borderRadius: 0.05; color: #00FFFF; opacity: 0.5;"
+            position="0 -0.5 -0.01"
+            animation="property: scale; to: 1.2 1.2 1.2; dur: 2000; easing: easeInOutQuad; loop: true; dir: alternate"
+            ><a-text
+              value="Register Now!"
+              align="center"
+              color="#090909"
+              width="2"
+              position="0 0 0"
+            ></a-text>
+          </a-entity> -->
+
+          <a-image
+            visible="false"
+            id="cta-button"
+            class="clickable"
+            position="0 -0.45 0"
+            animation="property: scale; to: 1.1 1.1 1.1; dur: 2000; easing: easeInOutQuad; loop: true; dir: alternate"
+            height="0.15625"
+            width="1"
+            src="#cta"
+          >
+          </a-image>
+        </a-entity>
+      </a-scene>
+    </div>
+  </body>
+</html>

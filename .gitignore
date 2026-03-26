@@ -1,0 +1,15 @@
+# Ignore unused assets
+
+assets/unused/
+
+# Ignore PSD source files
+
+assets/PSDs/
+
+# Optional: OS junk (safe to keep)
+
+.DS_Store
+Thumbs.db
+
+# Optional: IDE/editor files (uncomment if you want to ignore them)
+#.vscode/
