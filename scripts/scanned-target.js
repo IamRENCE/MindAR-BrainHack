@@ -4,7 +4,7 @@ AFRAME.registerComponent("scanned-target", {
     let removeCtaListeners = null;
 
     const targetFoundListener = () => {
-      console.log("Target found");
+      console.log("[scanned-target] Target found");
 
       showAvatar(() => {
         setTimeout(() => {
@@ -18,16 +18,15 @@ AFRAME.registerComponent("scanned-target", {
     };
 
     const targetLostListener = () => {
-      console.log("Target lost");
+      console.log("[scanned-target] Target lost");
 
-      // Clean up listeners
       if (removeMediaListeners) {
-        removeMediaListeners(); // Call the cleanup function
-        removeMediaListeners = null; // Reset cleanup function reference
+        removeMediaListeners();
+        removeMediaListeners = null;
       }
       if (removeCtaListeners) {
-        removeCtaListeners(); // Call the cleanup function
-        removeCtaListeners = null; // Reset cleanup function reference
+        removeCtaListeners();
+        removeCtaListeners = null;
       }
 
       const media = document.querySelector("#media-panel");

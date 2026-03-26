@@ -1,7 +1,5 @@
 const showMedia = (done) => {
   const media = document.querySelector("#media-panel");
-  const mediaLeftButton = document.querySelector("#media-left-button");
-  const mediaRightButton = document.querySelector("#media-right-button");
   const mediaPlayButton = document.querySelector("#media-play-button");
   const brainhackVideoPreview = document.querySelector(
     "#brainhack-video-preview-button"
@@ -9,44 +7,32 @@ const showMedia = (done) => {
   const brainhackVideo = document.querySelector("#brainhack-video-link");
 
   let y = 0;
-  let currentItem = 0;
   let playing = false;
   let videoToPlay = null;
-  let eventListeners = []; // Array to track added listeners for cleanup
+  let animationId = null;
+  let eventListeners = [];
 
   const removeListeners = () => {
+    // Stop animation interval if still running
+    if (animationId !== null) {
+      clearInterval(animationId);
+      animationId = null;
+    }
+    // Always pause the underlying video elements directly
+    const videoMp4 = document.querySelector("#brainhack-video-mp4");
+    const videoWebm = document.querySelector("#brainhack-video-webm");
+    if (videoMp4 && !videoMp4.paused) videoMp4.pause();
+    if (videoWebm && !videoWebm.paused) videoWebm.pause();
+    playing = false;
+    mediaPlayButton.setAttribute("visible", true);
+    brainhackVideoPreview.setAttribute("visible", true);
     eventListeners.forEach(({ element, type, handler }) => {
       element.removeEventListener(type, handler);
     });
-    eventListeners = []; // Clear the list
+    eventListeners = [];
   };
 
   media.setAttribute("visible", true);
-
-  const showMediaItem = (item) => {
-    for (let i = 0; i <= 2; i++) {
-      document
-        .querySelector("#media-item" + i)
-        .setAttribute("visible", i === item);
-    }
-
-    mediaPlayButton.setAttribute("visible", item == 0);
-    if (videoToPlay) {
-      // Stop video
-      videoToPlay.pause(); // Pause the video
-      videoToPlay.currentTime = 0; // Reset playback position to the start
-      playing = false;
-    }
-
-    if (item == 0) {
-      brainhackVideoPreview.setAttribute("visible", true);
-      brainhackVideoPreview.classList.add("clickable");
-      mediaPlayButton.classList.add("clickable");
-    } else {
-      brainhackVideoPreview.classList.remove("clickable");
-      mediaPlayButton.classList.remove("clickable");
-    }
-  };
 
   const initializeAndPlayVideo = () => {
     if (!videoToPlay) {
@@ -65,7 +51,7 @@ const showMedia = (done) => {
 
       const onVideoEnded = () => {
         playing = false;
-        console.log("VIDEO ENDED");
+        console.log("[show-media] Video ended");
         mediaPlayButton.setAttribute("visible", true);
         brainhackVideoPreview.setAttribute("visible", true);
       };
@@ -79,10 +65,10 @@ const showMedia = (done) => {
     }
 
     if (!playing) {
-      console.log("PLAYING");
+      console.log("[show-media] Playing video");
       videoToPlay.play();
     } else {
-      console.log("PAUSING");
+      console.log("[show-media] Pausing video");
       videoToPlay.pause();
     }
     playing = !playing;
@@ -90,56 +76,47 @@ const showMedia = (done) => {
     brainhackVideoPreview.setAttribute("visible", false);
   };
 
-  const id = setInterval(() => {
+  animationId = setInterval(() => {
     y += 0.016;
     if (y >= 0.6) {
-      clearInterval(id);
-      mediaLeftButton.setAttribute("visible", true);
-      mediaRightButton.setAttribute("visible", true);
+      clearInterval(animationId);
+      animationId = null;
       mediaPlayButton.setAttribute("visible", true);
       brainhackVideoPreview.setAttribute("visible", true);
 
-      // Add listeners with cleanup tracking
-      const leftClickHandler = () => {
-        currentItem = (currentItem - 1) % 3;
-        showMediaItem(currentItem);
-      };
-      mediaLeftButton.addEventListener("click", leftClickHandler);
-      eventListeners.push({
-        element: mediaLeftButton,
-        type: "click",
-        handler: leftClickHandler,
-      });
+      // THREE.js canvas raycasting — bypasses A-Frame cursor/raycaster
+      const scene = document.querySelector("a-scene");
+      const raycaster = new THREE.Raycaster();
 
-      const rightClickHandler = () => {
-        currentItem = (currentItem + 1 + 3) % 3;
-        showMediaItem(currentItem);
-      };
-      mediaRightButton.addEventListener("click", rightClickHandler);
-      eventListeners.push({
-        element: mediaRightButton,
-        type: "click",
-        handler: rightClickHandler,
-      });
+      const canvasClickHandler = (evt) => {
+        const canvas = scene.canvas;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        const mouse = new THREE.Vector2(
+          ((clientX - rect.left) / rect.width) * 2 - 1,
+          -((clientY - rect.top) / rect.height) * 2 + 1
+        );
+        raycaster.setFromCamera(mouse, scene.camera);
 
-      const previewClickHandler = () => {
-        initializeAndPlayVideo();
+        // Collect meshes from all interactive elements — preview, play button, and video all trigger the same action
+        const interactiveMeshes = [];
+        [brainhackVideoPreview, mediaPlayButton, brainhackVideo].forEach((el) => {
+          el.object3D.traverse((node) => {
+            if (node.isMesh) interactiveMeshes.push(node);
+          });
+        });
+        if (raycaster.intersectObjects(interactiveMeshes).length > 0) {
+          console.log("[show-media] Video area tapped");
+          initializeAndPlayVideo();
+        }
       };
-      brainhackVideoPreview.addEventListener("click", previewClickHandler);
-      eventListeners.push({
-        element: brainhackVideoPreview,
-        type: "click",
-        handler: previewClickHandler,
-      });
 
-      const playClickHandler = () => {
-        initializeAndPlayVideo();
-      };
-      mediaPlayButton.addEventListener("click", playClickHandler);
+      scene.canvas.addEventListener("click", canvasClickHandler);
       eventListeners.push({
-        element: mediaPlayButton,
+        element: scene.canvas,
         type: "click",
-        handler: playClickHandler,
+        handler: canvasClickHandler,
       });
 
       setTimeout(() => {
@@ -149,6 +126,5 @@ const showMedia = (done) => {
     media.setAttribute("position", "0 " + y + " -0.01");
   }, 10);
 
-  // Return cleanup function
   return removeListeners;
 };

@@ -1,6 +1,6 @@
 # BrainHack 2025 — AR Web Experience
 
-A browser-based Augmented Reality experience built for DSTA BrainHack 2025. Point your phone's camera at the BrainHack poster and watch a 3D model animate into view, browse a media panel with a video and info slides, then tap a call-to-action button to visit the event website.
+A browser-based Augmented Reality experience built for DSTA BrainHack 2025. Point your phone's camera at the BrainHack poster and watch a 3D model animate into view, then tap the video panel to play an event highlight reel and tap the call-to-action button to visit the event website.
 
 No app download required — it runs entirely in the browser.
 
@@ -12,8 +12,8 @@ No app download required — it runs entirely in the browser.
 |------|--------------|
 | Open the page on a mobile browser | Camera feed starts; a scanning overlay appears |
 | Point camera at the BrainHack poster | Target is detected; 3D model rises into frame |
-| Tap the play button | Event highlight video plays |
-| Tap the left/right arrows | Cycle through info slides |
+| Tap the video panel | Event highlight video plays (portrait format) |
+| Tap again while playing | Video pauses; play button reappears |
 | Tap the CTA banner | Opens [dstabrainhack.com](https://www.dstabrainhack.com/) |
 
 ---
@@ -36,7 +36,7 @@ index.html                  # Entry point — scene definition and all A-Frame m
 scripts/
   scanned-target.js         # A-Frame component: orchestrates the reveal sequence on target found/lost
   show-avatar.js            # Animates the 3D model rising into frame
-  show-media.js             # Shows the media panel; handles video playback and slide navigation
+  show-media.js             # Shows the media panel; handles portrait video playback
   show-cta.js               # Shows the CTA button and handles the click-through
   rounded-corner-plane.js   # Custom A-Frame component for rounded rectangle planes
 assets/
@@ -50,9 +50,10 @@ assets/
 1. **Target detection** — MindAR loads the `.mind` file, which encodes feature points extracted from the poster image. When the camera feed matches those features, `targetFound` fires.
 2. **Reveal sequence** — `scanned-target.js` listens for `targetFound` and triggers three sequential steps:
    - `showAvatar` slides the 3D GLB model forward along the Z-axis.
-   - `showMedia` makes the media panel visible and wires up the navigation buttons.
+   - `showMedia` makes the media panel visible and wires up video playback via THREE.js canvas raycasting.
    - `showCta` fades in the CTA image button.
-3. **Cleanup** — When the target leaves the frame, `targetLost` fires, event listeners are removed, and all overlaid elements are hidden.
+3. **Click handling** — A-Frame's built-in cursor/raycaster is not used. Instead, a `click` listener on the canvas converts screen coordinates to normalised device coordinates and uses `THREE.Raycaster` with the MindAR-corrected camera matrix for accurate 3D hit detection.
+4. **Cleanup** — When the target leaves the frame, `targetLost` fires, the video is paused, event listeners are removed, and all overlaid elements are hidden.
 
 ---
 
