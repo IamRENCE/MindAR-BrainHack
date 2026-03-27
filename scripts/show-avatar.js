@@ -3,7 +3,7 @@ const showAvatar = (onDone) => {
   let z = -0.5;
   const id = setInterval(() => {
     z += 0.008;
-    if (z >= 0.5) {
+    if (z >= 0.4) {
       clearInterval(id);
       onDone();
     }

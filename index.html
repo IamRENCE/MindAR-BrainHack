@@ -158,7 +158,7 @@
 
           <a-asset-item
             id="avatarModel"
-            src="./assets/damaged-helmet.glb"
+            src="./assets/brainhack-2025-robot.glb"
           ></a-asset-item>
         </a-assets>
 
@@ -217,16 +217,18 @@
             id="avatar"
             rotation="0 0 0"
             position="0 0 0"
-            scale="0.25 0.25 0.25"
+            scale="50 50 50"
             src="#avatarModel"
           ></a-gltf-model>
 
           <a-image
             visible="false"
             id="cta-button"
-            position="0 -0.62 0"
+            opacity="0"
+            position="0 -0.68 0"
             animation="property: scale; to: 1.1 1.1 1.1; dur: 2000; easing: easeInOutQuad; loop: true; dir: alternate"
-            height="0.15625"
+            animation__fade="property: material.opacity; from: 0; to: 1; dur: 800; easing: easeOutQuad; startEvents: fadeIn"
+            height="0.28653"
             width="1"
             src="#cta"
           >

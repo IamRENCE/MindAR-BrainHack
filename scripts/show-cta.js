@@ -12,6 +12,7 @@ const showCta = () => {
 
   setTimeout(() => {
     ctaButton.setAttribute("visible", true);
+    ctaButton.emit("fadeIn");
   }, 600);
 
   // THREE.js canvas raycasting — bypasses A-Frame cursor/raycaster
